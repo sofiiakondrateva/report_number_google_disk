@@ -1,0 +1,115 @@
+// Функция считает количество отчетов за определенные месяца
+function monthFiles(){
+  let rowSheet;
+  let month = [9, 10, 11];                               // Указываем месяц
+  let year = 2020;                                    // Указываем год
+  for(let m = 0; m < month.length; m++){
+    rowSheet = 2;
+    var activeSpreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+    var foldersDrive = DriveApp.getFolderById("1vdjKenlDt5xI0ybNDl5sFvTrLRfl_3nR");
+    var folders = foldersDrive.getFolders();
+    var sheet = activeSpreadsheet.getSheetByName(month[m] + "/" + year);
+    if(sheet != null){
+      activeSpreadsheet.deleteSheet(sheet); 
+    }
+    sheet = activeSpreadsheet.insertSheet();
+    sheet.setName(month[m] + "/" + year);
+    
+    sheet.getRange(1, 1).setValue("Наименование папки");
+    sheet.getRange(1, 2).setValue("Количество отчетов");
+    while(folders.hasNext()){
+      var folder = folders.next();
+      let count;
+      var idArray = [folder.getId()];
+      var nameArray = [folder.getName()];
+      var nameArr = [];
+      var idArr = [];
+      var countFolder = 1;
+      while(countFolder != 0){
+        idArr = [];
+        nameArr = [];
+        countFolder = 0;
+        for(let i = 0; i < idArray.length; i++){
+          var newFoldersDrive = DriveApp.getFolderById(idArray[i]);
+          var newFolders = newFoldersDrive.getFolders();
+          var newFiles = newFoldersDrive.getFiles();
+          
+          count = 0;
+          while(newFolders.hasNext()){
+            var fold = newFolders.next();
+            idArr.push(fold.getId());
+            nameArr.push(nameArray[i] + " / " + fold.getName());
+            countFolder++;
+          }
+          while(newFiles.hasNext()){
+            var file = newFiles.next();
+            // Если дата добавления отчета входит в нужный промежуток
+            if(file.getDateCreated().getMonth() == (month[m] - 1) && file.getDateCreated().getFullYear()){
+              count++;
+            }
+          }
+          sheet.getRange(rowSheet, 1).setValue(nameArray[i]);
+          sheet.getRange(rowSheet, 2).setValue(count);
+          rowSheet++;
+        }
+        idArray = idArr;
+        nameArray = nameArr;
+      }
+    }
+  }
+}
+
+// Считает общее количество отчетов в каждой папке
+function countFiles(){
+  var activeSpreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  var foldersDrive = DriveApp.getFolderById("1vdjKenlDt5xI0ybNDl5sFvTrLRfl_3nR");
+  var folders = foldersDrive.getFolders();
+  
+  while(folders.hasNext()){
+    var folder = folders.next();
+    var sheet = activeSpreadsheet.getSheetByName(folder.getName());
+    if(sheet != null){
+      activeSpreadsheet.deleteSheet(sheet); 
+    }
+    sheet = activeSpreadsheet.insertSheet();
+    sheet.setName(folder.getName());
+    
+    sheet.getRange(1, 1).setValue("Наименование папки");
+    sheet.getRange(1, 2).setValue("Количество отчетов");
+    
+    let rowSheet = 2;
+    let count;
+    var idArray = [folder.getId()];
+    var nameArray = [folder.getName()];
+    var nameArr = [];
+    var idArr = [];
+    var countFolder = 1;
+    while(countFolder != 0){
+      idArr = [];
+      nameArr = [];
+      countFolder = 0;
+      for(let i = 0; i < idArray.length; i++){
+        var newFoldersDrive = DriveApp.getFolderById(idArray[i]);
+        var newFolders = newFoldersDrive.getFolders();
+        var newFiles = newFoldersDrive.getFiles();
+        
+        count = 0;
+        while(newFolders.hasNext()){
+          var fold = newFolders.next();
+          idArr.push(fold.getId());
+          nameArr.push(nameArray[i] + " / " + fold.getName());
+          countFolder++;
+        }
+        while(newFiles.hasNext()){
+          var file = newFiles.next();
+          count++;
+        }
+        sheet.getRange(rowSheet, 1).setValue(nameArray[i]);
+        sheet.getRange(rowSheet, 2).setValue(count);
+        rowSheet++;
+      }
+      idArray = idArr;
+      nameArray = nameArr;
+    }
+  }
+}
